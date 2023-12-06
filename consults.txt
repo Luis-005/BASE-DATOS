@@ -1,0 +1,105 @@
+# Siguiendo con la base datos desarrollar las siguientes prácticas:
+# a. Diseña un procedimiento almacenado para crear, editar, eliminar un registro en la
+# tablas Compañía, Cliente
+
+-- Procedimiento para insertar o actualizar un registro en la tabla Compañía
+DELIMITADOR //
+CREAR PROCEDIMIENTO sp_GestionarCompania(
+  EN p_IdCompania INT ,
+  EN p_NombreCompania VARCHAR ( 50 ),
+  EN p_Dirección VARCHAR ( 50 ),
+  EN p_Telefono VARCHAR ( 50 ),
+  EN p_Accion VARCHAR ( 10 )
+)
+COMENZAR
+  SI p_Accion =  ' INSERTAR ' ENTONCES
+    INSERTAR EN Compañía (IdCompania, NombreCompania, Dirección, Telefono)
+    VALORES (p_IdCompania, p_NombreCompania, p_Direccion, p_Telefono);
+  ELSEIF p_Accion =  ' ACTUALIZAR ' ENTONCES
+    ACTUALIZAR Compañía
+    SET NombreCompania = p_NombreCompania, Direccion = p_Direccion, Telefono = p_Telefono
+    DONDE IdCompania = p_IdCompania;
+  ELSEIF p_Accion =  ' BORRAR ' ENTONCES
+    BORRAR  DE Compañía DONDE IdCompania = p_IdCompania;
+  TERMINARA SI;
+FIN //
+DELIMITADOR ;
+
+-- Procedimiento para insertar o actualizar un registro en la tabla Cliente
+DELIMITADOR //
+CREAR PROCEDIMIENTO sp_GestionarCliente(
+  EN p_IdCliente INT ,
+  EN p_NombreCliente VARCHAR ( 50 ),
+  EN p_ApellidoContacto VARCHAR ( 50 ),
+  EN p_NombreContacto VARCHAR ( 50 ),
+  EN p_Telefono VARCHAR ( 50 ),
+  EN p_Dirección1 VARCHAR ( 50 ),
+  EN p_Dirección2 VARCHAR ( 50 ),
+  EN p_Ciudad VARCHAR ( 50 ),
+  EN p_Estado VARCHAR ( 50 ),
+  EN p_CodigoPostal VARCHAR ( 15 ),
+  EN p_Pais VARCHAR ( 50 ),
+  EN p_IdEmpleado INT ,
+  EN p_LimiteCredito DECIMAL ( 10 , 2 ),
+  EN p_Accion VARCHAR ( 10 )
+)
+COMENZAR
+  SI p_Accion =  ' INSERTAR ' ENTONCES
+    INSERT INTO Clientes (IdCliente, NombreCliente, ApellidoContacto, NombreContacto, Telefono, Direccion1, Direccion2, Ciudad, Estado, CodigoPostal, Pais, IdEmpleado, LimiteCredito)
+    VALORES (p_IdCliente, p_NombreCliente, p_ApellidoContacto, p_NombreContacto, p_Telefono, p_Direccion1, p_Direccion2, p_Ciudad, p_Estado, p_CodigoPostal, p_Pais, p_IdEmpleado, p_LimiteCredito);
+  ELSEIF p_Accion =  ' ACTUALIZAR ' ENTONCES
+    ACTUALIZAR Clientes
+    SET NombreCliente = p_NombreCliente, ApellidoContacto = p_ApellidoContacto, NombreContacto = p_NombreContacto,
+        Telefono = p_Telefono, Direccion1 = p_Direccion1, Direccion2 = p_Direccion2, Ciudad = p_Ciudad,
+        Estado = p_Estado, CodigoPostal = p_CodigoPostal, Pais = p_Pais, IdEmpleado = p_IdEmpleado, LimiteCredito = p_LimiteCredito
+    DONDE IdCliente = p_IdCliente;
+  ELSEIF p_Accion =  ' BORRAR ' ENTONCES
+    BORRAR  DE Clientes DONDE IdCliente = p_IdCliente;
+  TERMINARA SI;
+FIN //
+DELIMITADOR ;
+
+# b. Crear 5 vistas para las siguientes consultas:
+ 
+
+# i. ¿Cuál es la información de las categorías y cuántos productos están asociados a
+# cadacategoría? -Se une + ver
+CREAR  VISTA  vista_CategoriasConProductos  AS
+SELECCIONAR  c . IdCategoría , c . Descripción , COUNT ( p . IdProducto ) AS CantidadProductos
+DE Categorías c
+IZQUIERDA UNIRSE Productos p ON  c . IdCategoría  =  p . IDCategoría
+Agrupar por  c . IdCategoría , c . descripción ;
+
+#ii . ¿Qué clientes han realizado compras y cuántas compras han hecho cada uno? -
+# Unirse + ver
+
+CREAR  VISTA  vista_ClientesConCompras  AS
+SELECCIONAR  cl . IdCliente , cl . NombreCliente , COUNT ( co . IdCompra ) AS CantidadCompras
+DESDE Clientes cl
+IZQUIERDA UNIRSE Compras co ON  cl . IdCliente  =  co . IdCliente
+Agrupar por  cl . IdCliente , cl . NombreCliente ;
+
+#iii . ¿Cuál es la información de los clientes junto con sus compras realizadas y la fecha?
+# de cada compra? -Se une + ver
+
+CREAR  VISTA  vista_ClientesConComprasDetalladas  AS
+SELECCIONAR  cl . IdCliente , cl . NombreCliente , co . IdCompra , co . FechaCompra
+DESDE Clientes cl
+IZQUIERDA UNIRSE Compras co ON  cl . IdCliente  =  co . IdCliente ;
+
+# iv. ¿Cuáles son los clientes con un límite de crédito superior a 5000 y quiénes son?
+# sus empleados asociados? -Se une + ver
+
+CREAR  VISTA  vista_ClientesConLimiteSuperior  AS
+SELECCIONAR  cl . IdCliente , cl . NombreCliente , cl . LimiteCredito , em . Nombre  AS NombreEmpleado
+DESDE Clientes cl
+LEFT JOIN Empleados en ON  cl . IdEmpleado  =  em . IdEmpleado
+DONDE  cl . Crédito Limitado  >  5000 ;
+
+# v. ¿Cuántos productos no han sido incluidos en ninguna compra? -Se une + ver
+
+CREAR  VISTA  vista_ProductosNoComprados  AS
+SELECCIONAR  pr . IdProducto , pr . nombre
+DESDE Productos pr
+IZQUIERDA UNIRSE DetallesCompra dc ON  pr . IdProducto  =  dc . IdProducto
+DÓNDE  dc . IdCompra ES NULO ;
